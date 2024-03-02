@@ -106,7 +106,7 @@ jobs:
       - name: Login to GAR
         uses: docker/login-action@v1
         with:
-          registry: us-east4-docker.pkg.dev
+          registry: us-west1-docker.pkg.dev
           username: _json_key
           password: ${{ secrets.GCR_JSON_KEY }}
 
@@ -116,9 +116,9 @@ jobs:
         with:
           push: true
           tags: |
-            us-east4-docker.pkg.dev/assemble-services/switchboard/core:latest
-            us-east4-docker.pkg.dev/assemble-services/switchboard/core:${{ steps.image-tags.outputs.version }}
-            us-east4-docker.pkg.dev/assemble-services/switchboard/core:${{ steps.image-tags.outputs.sha }}
+            us-west1-docker.pkg.dev/spoke-407503/switchboard/core:latest
+            us-west1-docker.pkg.dev/spoke-407503/switchboard/core:${{ steps.image-tags.outputs.version }}
+            us-west1-docker.pkg.dev/spoke-407503/switchboard/core:${{ steps.image-tags.outputs.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
