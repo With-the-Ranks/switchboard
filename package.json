@@ -1,6 +1,6 @@
 {
   "name": "lookup-service",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "main": "server.js",
   "homepage": "https://github.com/politics-rewired/switchboard",
   "repository": {

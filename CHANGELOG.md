@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/politics-rewired/switchboard/compare/v5.1.0...v5.2.0) (2024-03-04)
+
+
+### Features
+
+* **10dlc:** support multiple numbers per sending location ([#2](https://github.com/politics-rewired/switchboard/issues/2)) ([dd56994](https://github.com/politics-rewired/switchboard/commit/dd5699497685db6be36436a7ef4bed08f264fc3c))
+
 ## 5.1.0 (2024-03-02)
 
 
