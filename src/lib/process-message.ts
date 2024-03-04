@@ -63,12 +63,13 @@ export const getNumberForSendingLocation = async (
       from sms.phone_numbers pn
       join sms.sending_locations sl on sl.id = pn.sending_location_id
       where sl.id = $1
-      limit 2
+      order by random()
+      limit 1
     `,
     [sendingLocationId]
   );
 
-  if (rowCount !== 1) {
+  if (rowCount < 1) {
     // TODO: throw new Incorrect10DlcNumberCountError
     throw new Error(`Incorrect10DlcNumberCountError: Sending Location 
     ${sendingLocationId}`);
