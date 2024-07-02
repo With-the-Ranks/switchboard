@@ -1,0 +1,1 @@
+alter table billing.clients drop column taxable;
