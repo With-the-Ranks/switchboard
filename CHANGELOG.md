@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.3.0](https://github.com/politics-rewired/switchboard/compare/v5.2.0...v5.3.0) (2024-07-02)
+
+
+### Features
+
+* add taxable column for billing ([#3](https://github.com/politics-rewired/switchboard/issues/3)) ([8058282](https://github.com/politics-rewired/switchboard/commit/8058282bf0a40fb2234da291b85c6544c2fd8177))
+
+
+### Backend Changes
+
+* add license ([5f38703](https://github.com/politics-rewired/switchboard/commit/5f38703b27be177b48f4968a9e4b62711f192f3f))
+
 ## [5.2.0](https://github.com/politics-rewired/switchboard/compare/v5.1.0...v5.2.0) (2024-03-04)
 
 
