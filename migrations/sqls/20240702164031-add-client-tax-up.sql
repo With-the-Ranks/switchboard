@@ -1,0 +1,1 @@
+alter table billing.clients add column taxable boolean not null default false;

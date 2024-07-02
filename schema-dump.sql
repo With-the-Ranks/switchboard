@@ -2961,7 +2961,8 @@ CREATE TABLE billing.clients (
     id uuid DEFAULT public.uuid_generate_v1mc() NOT NULL,
     name text NOT NULL,
     access_token text DEFAULT md5((random())::text),
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    taxable boolean DEFAULT false NOT NULL
 );
 
 
