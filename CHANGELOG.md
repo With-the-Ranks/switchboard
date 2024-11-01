@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.0](https://github.com/politics-rewired/switchboard/compare/v5.3.0...v5.4.0) (2024-11-01)
+
+
+### Features
+
+* track tax codes and read replica for client billing ([#4](https://github.com/politics-rewired/switchboard/issues/4)) ([6728f66](https://github.com/politics-rewired/switchboard/commit/6728f6635c7fb4dece7fc12e957e06ba4caa3ed7))
+
 ## [5.3.0](https://github.com/politics-rewired/switchboard/compare/v5.2.0...v5.3.0) (2024-07-02)
 
 
