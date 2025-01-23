@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.5.0](https://github.com/politics-rewired/switchboard/compare/v5.4.0...v5.5.0) (2025-01-23)
+
+
+### Features
+
+* allow adding cc emails for billing ([#5](https://github.com/politics-rewired/switchboard/issues/5)) ([87d735e](https://github.com/politics-rewired/switchboard/commit/87d735e8be6f9f80590f4298fbe273a1278019c0))
+
 ## [5.4.0](https://github.com/politics-rewired/switchboard/compare/v5.3.0...v5.4.0) (2024-11-01)
 
 
