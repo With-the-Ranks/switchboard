@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.6.0](https://github.com/politics-rewired/switchboard/compare/v5.5.0...v5.6.0) (2025-05-25)
+
+
+### Features
+
+* add client pricing tracking ([#7](https://github.com/politics-rewired/switchboard/issues/7)) ([a29cdee](https://github.com/politics-rewired/switchboard/commit/a29cdee09c0a4ec9f0a57efa9132cdf979407344))
+
+
+### Backend Changes
+
+* **gh:** update ci workflow ([#9](https://github.com/politics-rewired/switchboard/issues/9)) ([974b159](https://github.com/politics-rewired/switchboard/commit/974b159ff518b2fb80703087b560890b31d2e2e3))
+
 ## [5.5.0](https://github.com/politics-rewired/switchboard/compare/v5.4.0...v5.5.0) (2025-01-23)
 
 
