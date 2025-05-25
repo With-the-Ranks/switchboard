@@ -1,1 +1,1 @@
-alter table billing.clients drop column pricing_type;
+alter table billing.clients add column pricing_type text;

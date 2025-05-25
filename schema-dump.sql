@@ -2964,7 +2964,8 @@ CREATE TABLE billing.clients (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     tax_name text DEFAULT 'Out of State, no tax payable'::text NOT NULL,
     has_read_replica boolean DEFAULT false NOT NULL,
-    billing_cc text
+    billing_cc text,
+    pricing_type text
 );
 
 
