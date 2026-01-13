@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.6.1](https://github.com/politics-rewired/switchboard/compare/v5.6.0...v5.6.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* **telnyx:** handle invalid number sending ([#10](https://github.com/politics-rewired/switchboard/issues/10)) ([c0855c8](https://github.com/politics-rewired/switchboard/commit/c0855c87dc6adb56a185d38d6d15a4163a459f1b))
+
 ## [5.6.0](https://github.com/politics-rewired/switchboard/compare/v5.5.0...v5.6.0) (2025-05-25)
 
 
