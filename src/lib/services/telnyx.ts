@@ -139,7 +139,11 @@ export class TelnyxService extends SwitchboardClient {
         errors: [telnyxError],
       } = err.raw;
 
-      if (telnyxError.code === '40300') {
+      if (telnyxError.code === '40021') {
+        throw new CodedSendMessageError(
+          SwitchboardErrorCodes.InvalidDestinationNumber
+        );
+      } else if (telnyxError.code === '40300') {
         throw new CodedSendMessageError(SwitchboardErrorCodes.Blacklist);
       } else if (telnyxError.code === '40322') {
         throw new CodedSendMessageError(SwitchboardErrorCodes.SpamContent);
