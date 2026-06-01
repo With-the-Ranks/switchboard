@@ -24,11 +24,9 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
   const parsed = GetNumberForContactQuery.safeParse(authnReq.query);
 
   if (!parsed.success) {
-    return res
-      .status(400)
-      .json({
-        error: 'to_number, profile_id, and contact_zip_code are required',
-      });
+    return res.status(400).json({
+      error: 'to_number, profile_id, and contact_zip_code are required',
+    });
   }
 
   const {
