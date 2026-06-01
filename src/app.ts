@@ -12,6 +12,7 @@ import lookup from './apis/graphql/lookup';
 import sms from './apis/graphql/sms';
 import lookupJson from './apis/lookup-json';
 import replies from './apis/replies';
+import routing from './apis/routing';
 import { expressErrorLogger, expressLogger, statsd } from './logger';
 
 const app = express();
@@ -52,6 +53,11 @@ app.get('/', (_req, res) => res.sendStatus(200));
  * For simple single use lookups
  */
 app.use('/lookup/json', lookupJson);
+
+/**
+ * For phone number routing (without sending a text)
+ */
+app.use('/routing', routing);
 
 /**
  * Postgraphile endpoints
