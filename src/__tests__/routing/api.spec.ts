@@ -175,4 +175,18 @@ describe('GET /routing/get-number-for-contact', () => {
     expect(response.body).toHaveProperty('from_number');
     expect(typeof response.body.from_number).toBe('string');
   });
+
+  test('returns a from_number when contact_zip_code is omitted, using area code from to_number', async () => {
+    const response = await supertest(app)
+      .get('/routing/get-number-for-contact')
+      .set('token', accessToken)
+      .query({
+        to_number: faker.phone.phoneNumber('+1212#######'),
+        profile_id: profileIdWithSendingLocation,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('from_number');
+    expect(typeof response.body.from_number).toBe('string');
+  });
 });

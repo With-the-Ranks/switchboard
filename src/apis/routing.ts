@@ -16,7 +16,7 @@ const app = express();
 const GetNumberForContactQuery = z.object({
   to_number: z.string(),
   profile_id: z.string(),
-  contact_zip_code: z.string(),
+  contact_zip_code: z.string().optional(),
 });
 
 app.get('/get-number-for-contact', auth.client, async (req, res) => {
@@ -25,14 +25,14 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
 
   if (!parsed.success) {
     return res.status(400).json({
-      error: 'to_number, profile_id, and contact_zip_code are required',
+      error: 'to_number and profile_id are required',
     });
   }
 
   const {
     to_number,
     profile_id,
-    contact_zip_code: contactZipCode,
+    contact_zip_code,
   } = parsed.data;
   const client = await pgPool.connect();
 
@@ -46,6 +46,15 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
       return res.json({
         from_number: prevMapping.from_number,
       });
+    }
+
+    let contactZipCode = contact_zip_code;
+    if (!contactZipCode) {
+      const zipResult = await client.query<{ zip: string }>(
+        'select sms.map_area_code_to_zip_code(sms.extract_area_code($1)) as zip',
+        [to_number]
+      );
+      contactZipCode = zipResult.rows[0].zip;
     }
 
     const env = { redis: getRedis(), pg: client };
