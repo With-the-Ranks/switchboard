@@ -29,11 +29,7 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
     });
   }
 
-  const {
-    to_number,
-    profile_id,
-    contact_zip_code,
-  } = parsed.data;
+  const { to_number, profile_id, contact_zip_code } = parsed.data;
   const client = await pgPool.connect();
 
   try {
