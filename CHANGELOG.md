@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.7.0](https://github.com/politics-rewired/switchboard/compare/v5.6.1...v5.7.0) (2026-06-03)
+
+
+### Features
+
+* add routing api ([#11](https://github.com/politics-rewired/switchboard/issues/11)) ([1e51f48](https://github.com/politics-rewired/switchboard/commit/1e51f482bef0102ff8db2708159845ae92330e1e))
+
 ### [5.6.1](https://github.com/politics-rewired/switchboard/compare/v5.6.0...v5.6.1) (2026-01-13)
 
 
