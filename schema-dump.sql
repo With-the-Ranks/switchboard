@@ -1752,6 +1752,45 @@ COMMENT ON FUNCTION sms.extract_area_code(phone_number public.phone_number) IS '
 
 
 --
+-- Name: get_available_calling_numbers(uuid, integer); Type: FUNCTION; Schema: sms; Owner: postgres
+--
+
+CREATE FUNCTION sms.get_available_calling_numbers(v_sending_location_id uuid, v_daily_calling_limit integer) RETURNS TABLE(phone_number public.phone_number, call_count bigint, priority integer)
+    LANGUAGE sql STABLE
+    AS $_$
+  with daily_counts as (
+    select from_number, count(*) as call_count
+    from sms.outbound_calls
+    where sending_location_id = $1
+      and created_at > date_trunc('day', now() at time zone 'America/Los_Angeles') at time zone 'UTC'
+    group by from_number
+  ),
+  available_texting as (
+    select pn.phone_number, coalesce(dc.call_count, 0) as call_count, 1 as priority
+    from sms.phone_numbers pn
+    left join daily_counts dc on pn.phone_number = dc.from_number
+    where pn.sending_location_id = $1
+      and pn.cordoned_at is null
+      and coalesce(dc.call_count, 0) < $2
+  ),
+  available_calling as (
+    select cpn.phone_number, coalesce(dc.call_count, 0) as call_count, 2 as priority
+    from sms.calling_phone_numbers cpn
+    left join daily_counts dc on cpn.phone_number = dc.from_number
+    where cpn.sending_location_id = $1
+      and cpn.released_at is null
+      and cpn.cordoned_at is null
+      and coalesce(dc.call_count, 0) < $2
+  )
+  select * from available_texting
+  union all
+  select * from available_calling
+$_$;
+
+
+ALTER FUNCTION sms.get_available_calling_numbers(v_sending_location_id uuid, v_daily_calling_limit integer) OWNER TO postgres;
+
+--
 -- Name: increment_commitment_bucket_if_unique(); Type: FUNCTION; Schema: sms; Owner: postgres
 --
 
@@ -2521,15 +2560,13 @@ declare
   v_capacity integer;
   v_purchasing_strategy sms.number_purchasing_strategy;
 begin
-  -- Create the phone number record
-  insert into sms.phone_numbers (
-    sending_location_id,
-    phone_number
-  )
-  values (
-    NEW.sending_location_id,
-    NEW.phone_number
-  );
+  if NEW.for_calling then
+    insert into sms.calling_phone_numbers (sending_location_id, phone_number)
+    values (NEW.sending_location_id, NEW.phone_number);
+  else
+    insert into sms.phone_numbers (sending_location_id, phone_number)
+    values (NEW.sending_location_id, NEW.phone_number);
+  end if;
 
   select sending_account_id, throughput_interval, throughput_limit
   from sms.profiles profiles
@@ -2565,27 +2602,29 @@ begin
     end if;
   end if;
 
+  if not NEW.for_calling then
   -- Process queued outbound messages
-  perform graphile_worker.add_job(
-    identifier => 'resolve-messages-awaiting-from-number'::text,
-    payload => to_json(NEW),
-    run_at => clock_timestamp()::timestamp + '10 second'::interval,
-    max_attempts => 5
-  );
+    perform graphile_worker.add_job(
+      identifier => 'resolve-messages-awaiting-from-number'::text,
+      payload => to_json(NEW),
+      run_at => clock_timestamp()::timestamp + '10 second'::interval,
+      max_attempts => 5
+    );
 
-  perform graphile_worker.add_job(
-    identifier => 'resolve-messages-awaiting-from-number'::text,
-    payload => to_json(NEW),
-    run_at => clock_timestamp()::timestamp + '1 minute'::interval,
-    max_attempts => 5
-  );
+    perform graphile_worker.add_job(
+      identifier => 'resolve-messages-awaiting-from-number'::text,
+      payload => to_json(NEW),
+      run_at => clock_timestamp()::timestamp + '1 minute'::interval,
+      max_attempts => 5
+    );
 
-  perform graphile_worker.add_job(
-    identifier => 'resolve-messages-awaiting-from-number'::text,
-    payload => to_json(NEW),
-    run_at => clock_timestamp()::timestamp + '5 minute'::interval,
-    max_attempts => 5
-  );
+    perform graphile_worker.add_job(
+      identifier => 'resolve-messages-awaiting-from-number'::text,
+      payload => to_json(NEW),
+      run_at => clock_timestamp()::timestamp + '5 minute'::interval,
+      max_attempts => 5
+    );
+  end if;
 
   return NEW;
 end;
@@ -3065,6 +3104,7 @@ CREATE TABLE sms.profiles (
     toll_free_use_case_id uuid,
     profile_service_configuration_id uuid,
     tendlc_campaign_id uuid,
+    daily_calling_limit integer,
     CONSTRAINT valid_10dlc_channel CHECK (((channel <> '10dlc'::sms.traffic_channel) OR (tendlc_campaign_id IS NOT NULL))),
     CONSTRAINT valid_toll_free_channel CHECK (((channel <> 'toll-free'::sms.traffic_channel) OR (toll_free_use_case_id IS NOT NULL)))
 );
@@ -3489,6 +3529,28 @@ COMMENT ON TABLE sms.area_code_capacities IS '@omit';
 
 
 --
+-- Name: calling_phone_numbers; Type: TABLE; Schema: sms; Owner: postgres
+--
+
+CREATE TABLE sms.calling_phone_numbers (
+    phone_number public.phone_number NOT NULL,
+    sending_location_id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    cordoned_at timestamp without time zone,
+    released_at timestamp without time zone
+);
+
+
+ALTER TABLE sms.calling_phone_numbers OWNER TO postgres;
+
+--
+-- Name: TABLE calling_phone_numbers; Type: COMMENT; Schema: sms; Owner: postgres
+--
+
+COMMENT ON TABLE sms.calling_phone_numbers IS '@omit';
+
+
+--
 -- Name: delivery_report_forward_attempts; Type: TABLE; Schema: sms; Owner: postgres
 --
 
@@ -3585,6 +3647,27 @@ ALTER TABLE sms.inbound_message_forward_attempts OWNER TO postgres;
 --
 
 COMMENT ON TABLE sms.inbound_message_forward_attempts IS '@omit';
+
+
+--
+-- Name: outbound_calls; Type: TABLE; Schema: sms; Owner: postgres
+--
+
+CREATE TABLE sms.outbound_calls (
+    id uuid DEFAULT public.uuid_generate_v1mc() NOT NULL,
+    from_number public.phone_number NOT NULL,
+    sending_location_id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE sms.outbound_calls OWNER TO postgres;
+
+--
+-- Name: TABLE outbound_calls; Type: COMMENT; Schema: sms; Owner: postgres
+--
+
+COMMENT ON TABLE sms.outbound_calls IS '@omit';
 
 
 --
@@ -3688,7 +3771,8 @@ CREATE TABLE sms.phone_number_requests (
     service_order_completed_at timestamp with time zone,
     service_profile_associated_at timestamp with time zone,
     service_10dlc_campaign_associated_at timestamp with time zone,
-    tendlc_campaign_id uuid
+    tendlc_campaign_id uuid,
+    for_calling boolean DEFAULT false NOT NULL
 );
 
 
@@ -4232,6 +4316,14 @@ ALTER TABLE ONLY public.migrations
 
 
 --
+-- Name: calling_phone_numbers calling_phone_numbers_pkey; Type: CONSTRAINT; Schema: sms; Owner: postgres
+--
+
+ALTER TABLE ONLY sms.calling_phone_numbers
+    ADD CONSTRAINT calling_phone_numbers_pkey PRIMARY KEY (phone_number);
+
+
+--
 -- Name: tendlc_campaign_mno_metadata campaign_mno_metadata_unique_campaign_mno; Type: CONSTRAINT; Schema: sms; Owner: postgres
 --
 
@@ -4253,6 +4345,14 @@ ALTER TABLE ONLY sms.fresh_phone_commitments
 
 ALTER TABLE ONLY sms.inbound_messages
     ADD CONSTRAINT inbound_messages_pkey PRIMARY KEY (received_at, id);
+
+
+--
+-- Name: outbound_calls outbound_calls_pkey; Type: CONSTRAINT; Schema: sms; Owner: postgres
+--
+
+ALTER TABLE ONLY sms.outbound_calls
+    ADD CONSTRAINT outbound_calls_pkey PRIMARY KEY (created_at, id);
 
 
 --
@@ -4534,6 +4634,20 @@ CREATE INDEX inbound_messages_received_at_idx ON sms.inbound_messages USING btre
 --
 
 CREATE INDEX inbound_messages_sending_location_id_idx ON sms.inbound_messages USING btree (sending_location_id);
+
+
+--
+-- Name: outbound_calls_created_at_idx; Type: INDEX; Schema: sms; Owner: postgres
+--
+
+CREATE INDEX outbound_calls_created_at_idx ON sms.outbound_calls USING btree (created_at DESC);
+
+
+--
+-- Name: outbound_calls_sending_location_date_idx; Type: INDEX; Schema: sms; Owner: postgres
+--
+
+CREATE INDEX outbound_calls_sending_location_date_idx ON sms.outbound_calls USING btree (sending_location_id, created_at DESC);
 
 
 --
@@ -4978,6 +5092,13 @@ CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON sms.inbound_messages FOR EACH 
 
 
 --
+-- Name: outbound_calls ts_insert_blocker; Type: TRIGGER; Schema: sms; Owner: postgres
+--
+
+CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON sms.outbound_calls FOR EACH ROW EXECUTE FUNCTION _timescaledb_internal.insert_blocker();
+
+
+--
 -- Name: outbound_messages ts_insert_blocker; Type: TRIGGER; Schema: sms; Owner: postgres
 --
 
@@ -5063,6 +5184,14 @@ ALTER TABLE ONLY sms.area_code_capacities
 
 
 --
+-- Name: calling_phone_numbers calling_phone_numbers_sending_location_id_fkey; Type: FK CONSTRAINT; Schema: sms; Owner: postgres
+--
+
+ALTER TABLE ONLY sms.calling_phone_numbers
+    ADD CONSTRAINT calling_phone_numbers_sending_location_id_fkey FOREIGN KEY (sending_location_id) REFERENCES sms.sending_locations(id);
+
+
+--
 -- Name: fresh_phone_commitments fresh_phone_commitments_sending_location_id_fkey; Type: FK CONSTRAINT; Schema: sms; Owner: postgres
 --
 
@@ -5084,6 +5213,14 @@ ALTER TABLE ONLY sms.from_number_mappings
 
 ALTER TABLE ONLY sms.inbound_messages
     ADD CONSTRAINT inbound_messages_sending_location_id_fkey FOREIGN KEY (sending_location_id) REFERENCES sms.sending_locations(id);
+
+
+--
+-- Name: outbound_calls outbound_calls_sending_location_id_fkey; Type: FK CONSTRAINT; Schema: sms; Owner: postgres
+--
+
+ALTER TABLE ONLY sms.outbound_calls
+    ADD CONSTRAINT outbound_calls_sending_location_id_fkey FOREIGN KEY (sending_location_id) REFERENCES sms.sending_locations(id);
 
 
 --

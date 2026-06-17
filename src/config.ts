@@ -21,6 +21,7 @@ interface AppConfig extends CleanEnv {
   mode: string;
   workerConcurrency: number;
   minSuitableNumbers: number;
+  sendingLocationMinCallingNumbers: number;
   jobsToRun: undefined | string[];
   mmsPerSecond: number;
   mmsSurgeCount: number;
@@ -54,6 +55,7 @@ const env = cleanEnv(process.env, {
   MAX_POOL_SIZE: num({ default: 20, devDefault: 50 }),
   MIN_POOL_SIZE: num({ default: 1 }),
   MIN_SUITABLE_NUMBERS: num({ default: 50 }),
+  SENDING_LOCATION_MIN_CALLING_NUMBERS: num({ default: 1 }),
   MMS_PER_SECOND: num({ default: 25 }),
   MMS_SURGE_COUNT: num({ default: 250 }),
   MODE: str({ default: 'DUAL' }),
@@ -101,6 +103,7 @@ const config: AppConfig = {
   maxPoolSize: env.MAX_POOL_SIZE,
   minPoolSize: env.MIN_POOL_SIZE,
   minSuitableNumbers: env.MIN_SUITABLE_NUMBERS,
+  sendingLocationMinCallingNumbers: env.SENDING_LOCATION_MIN_CALLING_NUMBERS,
   mmsPerSecond: env.MMS_SURGE_COUNT,
   mmsSurgeCount: env.MMS_SURGE_COUNT,
   mode: env.MODE,
