@@ -34,6 +34,12 @@ describe('GET /routing/get-number-for-contact', () => {
     accessToken = registerResponse.body.access_token;
 
     await withClient(pool, async (client) => {
+      const setCallingLimit = (profileId: string) =>
+        client.query(
+          `UPDATE sms.profiles SET daily_calling_limit = 50 WHERE id = $1`,
+          [profileId]
+        );
+
       // Profile with an existing from_number mapping
       const sa1 = await createSendingAccount(client, {
         service: Service.Telnyx,
@@ -56,6 +62,7 @@ describe('GET /routing/get-number-for-contact', () => {
         },
       });
       profileIdWithMapping = sl1.profile_id;
+      await setCallingLimit(profileIdWithMapping);
       toNumberWithMapping = faker.phone.phoneNumber('+1##########');
       expectedFromNumber = faker.phone.phoneNumber('+1##########');
       await client.query(
@@ -87,6 +94,7 @@ describe('GET /routing/get-number-for-contact', () => {
         },
       });
       profileIdWithSendingLocation = sl2.profile_id;
+      await setCallingLimit(profileIdWithSendingLocation);
       await createPhoneNumber(client, { sending_location_id: sl2.id });
 
       // Profile with no sending locations (404 path)
@@ -106,6 +114,7 @@ describe('GET /routing/get-number-for-contact', () => {
         },
       });
       profileIdNoSendingLocations = emptyProfile.id;
+      await setCallingLimit(profileIdNoSendingLocations);
     });
   });
 
