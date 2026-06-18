@@ -79,9 +79,9 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
           [profile_id, to_number]
         );
         await client.query(
-          `insert into sms.outbound_calls (from_number, sending_location_id, profile_id)
-           values ($1, $2, $3)`,
-          [prevMapping.from_number, prevMapping.sending_location_id, profile_id]
+          `insert into sms.outbound_calls (from_number, sending_location_id)
+           values ($1, $2)`,
+          [prevMapping.from_number, prevMapping.sending_location_id]
         );
         return res.json({ from_number: prevMapping.from_number });
       }
@@ -126,9 +126,9 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
     // Record the call (no from_number_mappings insert — calling numbers must not be
     // used as from-numbers for SMS)
     await client.query(
-      `insert into sms.outbound_calls (from_number, sending_location_id, profile_id)
-       values ($1, $2, $3)`,
-      [fromNumber, sendingLocationId, profile_id]
+      `insert into sms.outbound_calls (from_number, sending_location_id)
+       values ($1, $2)`,
+      [fromNumber, sendingLocationId]
     );
 
     const availableCount = await countAvailableCallingNumbers(
