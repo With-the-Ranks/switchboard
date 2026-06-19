@@ -10,7 +10,7 @@ RUN jq '{ dependencies, devDependencies, resolutions }' < /tmp/package.json > /t
 
 ### Fat Build
 ### -------------------------
-FROM node:16.14.0-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /usr/numbers
 
@@ -26,7 +26,7 @@ RUN yarn run build
 
 ### Slim Deploy
 ### -------------------------
-FROM node:16.14.0-alpine
+FROM node:24-alpine
 
 WORKDIR /usr/numbers
 
