@@ -1,35 +1,32 @@
 import { PoolOrPoolClient } from '../db';
 import { chooseAreaCodeForSendingLocation } from './process-message';
 
-export const getCallingNumberForSendingLocation = async (
+export const getCallingNumberWithCount = async (
   client: PoolOrPoolClient,
   sendingLocationId: string,
   dailyCallingLimit: number
-): Promise<string | null> => {
+): Promise<{ fromNumber: string | null; availableCount: number }> => {
   const {
     rows: [row],
-  } = await client.query<{ phone_number: string | null }>(
-    `select phone_number
-     from sms.get_available_calling_numbers($1, $2)
-     order by priority asc, call_count asc
-     limit 1`,
+  } = await client.query<{ phone_number: string | null; count: string }>(
+    `with available as (
+       select phone_number, priority, call_count
+       from sms.get_available_calling_numbers($1, $2)
+     ),
+     ranked as (
+       select
+         first_value(phone_number) over (order by priority, call_count) as phone_number,
+         count(*) over () as count
+       from available
+       limit 1
+     )
+     select phone_number, count from ranked`,
     [sendingLocationId, dailyCallingLimit]
   );
-  return row?.phone_number ?? null;
-};
-
-export const countAvailableCallingNumbers = async (
-  client: PoolOrPoolClient,
-  sendingLocationId: string,
-  dailyCallingLimit: number
-): Promise<number> => {
-  const {
-    rows: [{ count }],
-  } = await client.query<{ count: string }>(
-    'select count(*) from sms.get_available_calling_numbers($1, $2)',
-    [sendingLocationId, dailyCallingLimit]
-  );
-  return parseInt(count, 10);
+  return {
+    fromNumber: row?.phone_number ?? null,
+    availableCount: row?.count ? parseInt(row.count, 10) : 0,
+  };
 };
 
 export const requestCallingNumber = async (

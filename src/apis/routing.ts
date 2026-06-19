@@ -5,8 +5,7 @@ import config from '../config';
 import { pgPool } from '../db';
 import { auth, ClientAuthenticatedRequest } from '../lib/auth';
 import {
-  countAvailableCallingNumbers,
-  getCallingNumberForSendingLocation,
+  getCallingNumberWithCount,
   requestCallingNumber,
 } from '../lib/process-call';
 import { getFromNumberMapping } from '../lib/process-message';
@@ -45,9 +44,13 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
       [profile_id]
     );
 
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
     const { daily_calling_limit } = profile;
 
-    if (!profile || daily_calling_limit === null) {
+    if (daily_calling_limit === null) {
       return res.status(400).json({
         error:
           'Profile does not have calling configured (daily_calling_limit not set)',
@@ -61,16 +64,19 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
     });
 
     if (prevMapping !== undefined) {
+      const { sending_location_id, from_number } = prevMapping;
+
       const {
         rows: [{ count }],
       } = await client.query<{ count: string }>(
         `select count(*) from sms.outbound_calls
-         where from_number = $1
+         where sending_location_id = $1
+           and from_number = $2
            and created_at > date_trunc('day', now() at time zone 'America/Los_Angeles') at time zone 'UTC'`,
-        [prevMapping.from_number]
+        [sending_location_id, from_number]
       );
-      const todayCallCount = parseInt(count, 10);
 
+      const todayCallCount = parseInt(count, 10);
       if (todayCallCount < daily_calling_limit) {
         await client.query(
           `update sms.from_number_mappings
@@ -110,7 +116,7 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
         .json({ error: 'No sending location found for contact' });
     }
 
-    const fromNumber = await getCallingNumberForSendingLocation(
+    const { fromNumber, availableCount } = await getCallingNumberWithCount(
       client,
       sendingLocationId,
       daily_calling_limit
@@ -129,12 +135,6 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
       `insert into sms.outbound_calls (from_number, sending_location_id)
        values ($1, $2)`,
       [fromNumber, sendingLocationId]
-    );
-
-    const availableCount = await countAvailableCallingNumbers(
-      client,
-      sendingLocationId,
-      daily_calling_limit
     );
 
     if (availableCount <= sendingLocationMinCallingNumbers) {

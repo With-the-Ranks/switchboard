@@ -10,7 +10,7 @@ declare
   v_purchasing_strategy sms.number_purchasing_strategy;
 begin
   -- Create the phone number record
-  insert into sms.all_phone_numbers (
+  insert into sms.phone_numbers (
     sending_location_id,
     phone_number
   )
