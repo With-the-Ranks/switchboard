@@ -1014,7 +1014,8 @@ describe('sms.tg__phone_number_requests__fulfill', () => {
           }
 
           const { rows: pendingNumberRequests } = await client.query(
-            'select * from sms.phone_number_requests;'
+            'select * from sms.phone_number_requests where for_calling = false and sending_location_id = $1',
+            [sendingLocationId]
           );
 
           expect(pendingNumberRequests).toHaveLength(1);
