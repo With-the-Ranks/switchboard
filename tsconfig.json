@@ -96,7 +96,9 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*.ts", "scripts/**/*.ts", "typings/**/*.d.ts"],
   "exclude": ["node_modules", ".vscode"]
