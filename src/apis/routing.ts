@@ -64,6 +64,8 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
     });
 
     if (prevMapping !== undefined) {
+      const { sending_location_id, from_number } = prevMapping;
+
       const {
         rows: [{ count }],
       } = await client.query<{ count: string }>(
@@ -71,10 +73,10 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
          where sending_location_id = $1
            and from_number = $2
            and created_at > date_trunc('day', now() at time zone 'America/Los_Angeles') at time zone 'UTC'`,
-        [prevMapping.sending_location_id, prevMapping.from_number]
+        [sending_location_id, from_number]
       );
-      const todayCallCount = parseInt(count, 10);
 
+      const todayCallCount = parseInt(count, 10);
       if (todayCallCount < daily_calling_limit) {
         await client.query(
           `update sms.from_number_mappings
