@@ -65,9 +65,10 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
         rows: [{ count }],
       } = await client.query<{ count: string }>(
         `select count(*) from sms.outbound_calls
-         where from_number = $1
+         where sending_location_id = $1
+           and from_number = $2
            and created_at > date_trunc('day', now() at time zone 'America/Los_Angeles') at time zone 'UTC'`,
-        [prevMapping.from_number]
+        [prevMapping.sending_location_id, prevMapping.from_number]
       );
       const todayCallCount = parseInt(count, 10);
 
