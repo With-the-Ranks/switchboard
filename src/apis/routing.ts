@@ -5,8 +5,7 @@ import config from '../config';
 import { pgPool } from '../db';
 import { auth, ClientAuthenticatedRequest } from '../lib/auth';
 import {
-  countAvailableCallingNumbers,
-  getCallingNumberForSendingLocation,
+  getCallingNumberWithCount,
   requestCallingNumber,
 } from '../lib/process-call';
 import { getFromNumberMapping } from '../lib/process-message';
@@ -111,7 +110,7 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
         .json({ error: 'No sending location found for contact' });
     }
 
-    const fromNumber = await getCallingNumberForSendingLocation(
+    const { fromNumber, availableCount } = await getCallingNumberWithCount(
       client,
       sendingLocationId,
       daily_calling_limit
@@ -130,12 +129,6 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
       `insert into sms.outbound_calls (from_number, sending_location_id)
        values ($1, $2)`,
       [fromNumber, sendingLocationId]
-    );
-
-    const availableCount = await countAvailableCallingNumbers(
-      client,
-      sendingLocationId,
-      daily_calling_limit
     );
 
     if (availableCount <= sendingLocationMinCallingNumbers) {
