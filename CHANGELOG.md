@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/politics-rewired/switchboard/compare/v5.7.0...v6.0.0) (2026-06-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to v24 LTS (#17)
+
+### Features
+
+* **routing:** add call number pool ([#13](https://github.com/politics-rewired/switchboard/issues/13)) ([89ceb59](https://github.com/politics-rewired/switchboard/commit/89ceb59bf54d080b64d8f8e5d522160b46cdf0e7))
+
+
+### Bug Fixes
+
+* **update-dump:** handle asdf environment ([#15](https://github.com/politics-rewired/switchboard/issues/15)) ([0b39c77](https://github.com/politics-rewired/switchboard/commit/0b39c77aba5a6c4e0af7f82502cdf3999cb5118e))
+
+
+### build
+
+* upgrade to v24 LTS ([#17](https://github.com/politics-rewired/switchboard/issues/17)) ([0b08890](https://github.com/politics-rewired/switchboard/commit/0b08890cac5940ad058a514d766389680340a012))
+
+
+### Backend Changes
+
+* **cryptr:** update to v6 ([#18](https://github.com/politics-rewired/switchboard/issues/18)) ([9b6f46b](https://github.com/politics-rewired/switchboard/commit/9b6f46b1e20fca43895ae69f9e012ac2d8dcb674))
+* add asdf tool-versions ([#14](https://github.com/politics-rewired/switchboard/issues/14)) ([25818e0](https://github.com/politics-rewired/switchboard/commit/25818e0fd1d8ea20b433e5ca32a7cad914ad020f))
+
 ## [5.7.0](https://github.com/politics-rewired/switchboard/compare/v5.6.1...v5.7.0) (2026-06-03)
 
 
