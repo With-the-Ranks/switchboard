@@ -114,7 +114,7 @@ describe('find suitable area codes', () => {
   });
 
   test('should warn if not enough', async () => {
-    const spiedLog = spyOn(logger, 'warn');
+    const spiedLog = jest.spyOn(logger, 'warn');
 
     await withPgMiddlewares(pool, [autoRollbackMiddleware], async (client) => {
       const { sendingLocationId } = await setUpFindSuitableAreaCodes(client);
@@ -127,8 +127,8 @@ describe('find suitable area codes', () => {
       );
 
       // set up nocks
-      // nock responses so that it doesn't find enough
-      TwilioNock.getNumberAvailability(10, 0);
+      // nock responses so that it doesn't find enough (8 NY + 1 NJ = 9 total)
+      TwilioNock.getNumberAvailability(9, 0);
 
       await findSuitableAreaCodes(
         client,
@@ -153,9 +153,9 @@ describe('find suitable area codes', () => {
           sendingLocationId
         );
 
-        // we have 7 NY area codes, 1 NJ one
+        // we have 8 NY area codes (212,516,518,646,718,917 at dist 0, then 347,914 via zip 10012), 1 NJ one
         // nock responses so that it doesn't find enough in NY
-        TwilioNock.getNumberAvailability(7, 0);
+        TwilioNock.getNumberAvailability(8, 0);
         // and finds enough in NJ
         TwilioNock.getNumberAvailability(1, 100);
 
@@ -175,9 +175,9 @@ describe('find suitable area codes', () => {
       }
     );
 
-    // expect the sending locaton to use the one area code
+    // expect the sending location to use the one area code
     // in NJ despite having an NY center, because we've mocked
     // the NY ones to be empty
-    expect(modifiedSendingLocation.area_codes).toEqual('{609}'); // skipping 516
+    expect(modifiedSendingLocation.area_codes).toEqual('{609}'); // only NJ code in dev seed (08540/Princeton)
   });
 });

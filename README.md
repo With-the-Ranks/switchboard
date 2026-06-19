@@ -14,7 +14,7 @@ vi .env
 ### Install dependencies
 
 ```
-# With Node 16.14
+# With Node 24.2
 yarn install
 ```
 
