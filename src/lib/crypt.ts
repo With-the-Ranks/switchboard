@@ -14,7 +14,7 @@ function decryptV4(value: string): string {
   const iv = Uint8Array.from(Buffer.from(stringValue.slice(0, 32), 'hex'));
   const encrypted = stringValue.slice(32);
   let legacyValue = false;
-  let decipher: crypto.Decipher | undefined;
+  let decipher: crypto.Decipheriv | undefined;
 
   try {
     decipher = crypto.createDecipheriv('aes-256-ctr', key, iv);
