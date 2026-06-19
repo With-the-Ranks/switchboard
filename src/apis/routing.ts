@@ -44,9 +44,13 @@ app.get('/get-number-for-contact', auth.client, async (req, res) => {
       [profile_id]
     );
 
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
     const { daily_calling_limit } = profile;
 
-    if (!profile || daily_calling_limit === null) {
+    if (daily_calling_limit === null) {
       return res.status(400).json({
         error:
           'Profile does not have calling configured (daily_calling_limit not set)',
