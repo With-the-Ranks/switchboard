@@ -25,7 +25,7 @@ const argv = yargs
       'The ID of the Switchboard sending account to use as a template for new sending accounts',
     type: 'string',
   })
-  .help().argv;
+  .help().argv as yargs.Arguments<{ 'template-sending-account-id'?: string }>;
 const templateAccountId = argv['template-sending-account-id'];
 
 const pool = new Pool({ connectionString: config.databaseUrl });
