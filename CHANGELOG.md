@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.0.1](https://github.com/politics-rewired/switchboard/compare/v6.0.0...v6.0.1) (2026-06-19)
+
+
+### Bug Fixes
+
+* **backfill-telnyx:** assert yargs type ([#20](https://github.com/politics-rewired/switchboard/issues/20)) ([394657d](https://github.com/politics-rewired/switchboard/commit/394657d1923e0edec1c301e8d594e50f1729379b))
+* add fixes for call limits ([#19](https://github.com/politics-rewired/switchboard/issues/19)) ([91cc1db](https://github.com/politics-rewired/switchboard/commit/91cc1db8d106a3909f63ec796b3abafbdad23919))
+
 ## [6.0.0](https://github.com/politics-rewired/switchboard/compare/v5.7.0...v6.0.0) (2026-06-19)
 
 
