@@ -80,7 +80,7 @@
     "body-parser-xml": "^2.0.3",
     "connect-datadog-graphql": "^0.0.12",
     "cors": "^2.8.5",
-    "cryptr": "^4.0.2",
+    "cryptr": "^6.4.0",
     "db-migrate": "^0.11.13",
     "db-migrate-pg": "^1.2.2",
     "envalid": "^5.0.0",
