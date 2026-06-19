@@ -7,12 +7,11 @@ import config from '../config';
 // Kept so existing DB credentials and client tokens remain readable after the
 // cryptr v6 upgrade, until Phase 2 (DB re-encryption) is complete.
 function decryptV4(value: string): string {
-  const key = crypto
-    .createHash('sha256')
-    .update(config.applicationSecret)
-    .digest();
+  const key = Uint8Array.from(
+    crypto.createHash('sha256').update(config.applicationSecret).digest()
+  );
   const stringValue = String(value);
-  const iv = Buffer.from(stringValue.slice(0, 32), 'hex');
+  const iv = Uint8Array.from(Buffer.from(stringValue.slice(0, 32), 'hex'));
   const encrypted = stringValue.slice(32);
   let legacyValue = false;
   let decipher: crypto.Decipher | undefined;
@@ -31,13 +30,11 @@ function decryptV4(value: string): string {
     return decipher!.update(encrypted, 'hex', 'utf8') + decipher!.final('utf8');
   }
 
-  const legacyIv = stringValue.slice(0, 16);
-  const legacyEncrypted = stringValue.slice(16);
-  const legacyDecipher = crypto.createDecipheriv(
-    'aes-256-ctr',
-    key,
-    Buffer.from(legacyIv, 'hex')
+  const legacyIv = Uint8Array.from(
+    Buffer.from(stringValue.slice(0, 16), 'hex')
   );
+  const legacyEncrypted = stringValue.slice(16);
+  const legacyDecipher = crypto.createDecipheriv('aes-256-ctr', key, legacyIv);
   return (
     legacyDecipher.update(legacyEncrypted, 'hex', 'utf8') +
     legacyDecipher.final('utf8')
