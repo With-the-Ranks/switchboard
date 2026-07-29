@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/politics-rewired/switchboard/compare/v6.0.1...v6.1.0) (2026-07-29)
+
+
+### Features
+
+* allow client to request send after ([#21](https://github.com/politics-rewired/switchboard/issues/21)) ([4a12f37](https://github.com/politics-rewired/switchboard/commit/4a12f378b394897b193e69b61a828e68ab7c27e1))
+
 ### [6.0.1](https://github.com/politics-rewired/switchboard/compare/v6.0.0...v6.0.1) (2026-06-19)
 
 
