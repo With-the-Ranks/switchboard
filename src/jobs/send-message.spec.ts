@@ -53,13 +53,14 @@ const sendAndProcessMessage = async (
   body: string,
   mediaUrls: string[] | null,
   zip: string,
-  sendBefore: Date | null
+  sendBefore: Date | null,
+  sendAfter: Date | null = null
 ) => {
   const {
     rows: [toProcess],
   } = await client.query(
-    `select * from sms.send_message($1, $2, $3, $4, $5, $6)`,
-    [profileId, toNumber, body, mediaUrls, zip, sendBefore]
+    `select * from sms.send_message($1, $2, $3, $4, $5, $6, $7)`,
+    [profileId, toNumber, body, mediaUrls, zip, sendBefore, sendAfter]
   );
 
   const foundJob = await findJob(
@@ -106,7 +107,8 @@ const setupSendMessage = async (
   service: Service,
   myNumber: string,
   sendBefore: Date | null = null,
-  mediaUrls: string[] | null = null
+  mediaUrls: string[] | null = null,
+  sendAfter: Date | null = null
 ): Promise<string> => {
   const sendingAccount = await createSendingAccount(client, {
     triggers: true,
@@ -146,7 +148,8 @@ const setupSendMessage = async (
     faker.hacker.phrase(),
     mediaUrls,
     '11238',
-    sendBefore
+    sendBefore,
+    sendAfter
   );
 
   return message.id;
@@ -648,5 +651,42 @@ describe('send message', () => {
     );
 
     expect(job.flags).toEqual({ 'send-message-mms:global': true });
+  });
+
+  test('should reject send_after that is not before send_before', async () => {
+    await withPgMiddlewares(pool, [autoRollbackMiddleware], async (client) => {
+      const myNumber = fakeNumber();
+      const sendBefore = new Date();
+      const sendAfter = new Date(sendBefore.getTime() + 1000 * 60 * 60);
+
+      await expect(
+        setupSendMessage(
+          client,
+          Service.Telnyx,
+          myNumber,
+          sendBefore,
+          null,
+          sendAfter
+        )
+      ).rejects.toThrow(/send_after must be before send_before/);
+    });
+  });
+
+  test('should reject send_after for a non-10dlc (grey-route) profile', async () => {
+    await withPgMiddlewares(pool, [autoRollbackMiddleware], async (client) => {
+      const myNumber = fakeNumber();
+      const sendAfter = new Date(Date.now() + 1000 * 60 * 60);
+
+      await expect(
+        setupSendMessage(
+          client,
+          Service.Telnyx,
+          myNumber,
+          null,
+          null,
+          sendAfter
+        )
+      ).rejects.toThrow(/send_after is only supported for the 10dlc channel/);
+    });
   });
 });

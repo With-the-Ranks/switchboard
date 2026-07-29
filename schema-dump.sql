@@ -1889,7 +1889,8 @@ CREATE TABLE sms.outbound_messages (
     media_urls public.url[],
     estimated_segments integer DEFAULT 1,
     profile_id uuid,
-    send_before timestamp without time zone
+    send_before timestamp without time zone,
+    send_after timestamp without time zone
 )
 WITH (autovacuum_vacuum_threshold='50000', autovacuum_vacuum_scale_factor='0', autovacuum_vacuum_cost_limit='1000', autovacuum_vacuum_cost_delay='0');
 
@@ -2369,10 +2370,10 @@ COMMENT ON FUNCTION sms.sell_cordoned_numbers(n_days integer) IS '@omit';
 
 
 --
--- Name: send_message(uuid, public.phone_number, text, public.url[], public.zip_code, timestamp without time zone); Type: FUNCTION; Schema: sms; Owner: postgres
+-- Name: send_message(uuid, public.phone_number, text, public.url[], public.zip_code, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: sms; Owner: postgres
 --
 
-CREATE FUNCTION sms.send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code DEFAULT NULL::text, send_before timestamp without time zone DEFAULT NULL::timestamp without time zone) RETURNS sms.outbound_messages
+CREATE FUNCTION sms.send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code DEFAULT NULL::text, send_before timestamp without time zone DEFAULT NULL::timestamp without time zone, send_after timestamp without time zone DEFAULT NULL::timestamp without time zone) RETURNS sms.outbound_messages
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 declare
@@ -2403,6 +2404,12 @@ begin
     raise 'Profile % is inactive', send_message.profile_id;
   end if;
 
+  if send_message.send_after is not null
+      and send_message.send_before is not null
+      and send_message.send_after >= send_message.send_before then
+    raise 'send_after must be before send_before';
+  end if;
+
   if contact_zip_code is null or contact_zip_code = '' then
     select sms.map_area_code_to_zip_code(sms.extract_area_code(send_message.to)) into v_contact_zip_code;
   else
@@ -2411,8 +2418,8 @@ begin
 
   select sms.estimate_segments(body) into v_estimated_segments;
 
-  insert into sms.outbound_messages (profile_id, created_at, to_number, stage, body, media_urls, contact_zip_code, estimated_segments, send_before)
-  values (send_message.profile_id, date_trunc('second', now()), send_message.to, 'processing', body, media_urls, v_contact_zip_code, v_estimated_segments, send_message.send_before)
+  insert into sms.outbound_messages (profile_id, created_at, to_number, stage, body, media_urls, contact_zip_code, estimated_segments, send_before, send_after)
+  values (send_message.profile_id, date_trunc('second', now()), send_message.to, 'processing', body, media_urls, v_contact_zip_code, v_estimated_segments, send_message.send_before, send_message.send_after)
   returning *
   into v_result;
 
@@ -2421,7 +2428,7 @@ end;
 $$;
 
 
-ALTER FUNCTION sms.send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code, send_before timestamp without time zone) OWNER TO postgres;
+ALTER FUNCTION sms.send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code, send_before timestamp without time zone, send_after timestamp without time zone) OWNER TO postgres;
 
 --
 -- Name: sending_locations; Type: TABLE; Schema: sms; Owner: postgres
@@ -2844,6 +2851,10 @@ begin
   from sms.profiles
   where id = NEW.profile_id
   into v_channel;
+
+  if NEW.send_after is not null and v_channel <> '10dlc'::sms.traffic_channel then
+    raise 'send_after is only supported for the 10dlc channel';
+  end if;
 
   select row_to_json(NEW) into v_job;
 
@@ -5556,10 +5567,10 @@ GRANT SELECT,INSERT,UPDATE ON TABLE lookup.requests TO client;
 
 
 --
--- Name: FUNCTION send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code, send_before timestamp without time zone); Type: ACL; Schema: sms; Owner: postgres
+-- Name: FUNCTION send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code, send_before timestamp without time zone, send_after timestamp without time zone); Type: ACL; Schema: sms; Owner: postgres
 --
 
-GRANT ALL ON FUNCTION sms.send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code, send_before timestamp without time zone) TO client;
+GRANT ALL ON FUNCTION sms.send_message(profile_id uuid, "to" public.phone_number, body text, media_urls public.url[], contact_zip_code public.zip_code, send_before timestamp without time zone, send_after timestamp without time zone) TO client;
 
 
 --

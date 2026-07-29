@@ -20,6 +20,7 @@ export const ProcessMessagePayloadSchema = z
     profile_id: z.string(),
     contact_zip_code: z.string().length(5),
     estimated_segments: z.number().int(),
+    send_after: z.string().nullable(),
   })
   .required();
 
