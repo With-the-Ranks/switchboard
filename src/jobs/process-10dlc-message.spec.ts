@@ -111,4 +111,49 @@ describe('process message', () => {
     expect(m.sending_location_id).not.toBeNull();
     expect(m.from_number).toBe(fromNumber);
   });
+
+  test('it should carry a requested send_after through to outbound_messages_routing', async () => {
+    const fromNumber = fakeNumber('877');
+    const toNumber = fakeNumber();
+    const sendAfter = new Date(Date.now() + 60 * 60 * 1000);
+
+    const m = await withClient(pool, async (client) => {
+      const { profileId } = await setUpProcessMessage(client, fromNumber);
+
+      const {
+        rows: [message],
+      } = await client.query(
+        'select id from sms.send_message($1, $2, $3, $4, $5, $6, $7)',
+        [
+          profileId,
+          toNumber,
+          faker.hacker.phrase(),
+          null,
+          '11238',
+          null,
+          sendAfter,
+        ]
+      );
+
+      const foundProcessMessageJob = await findJob<ProcessMessagePayload>(
+        client,
+        PROCESS_10DLC_MESSAGE_IDENTIFIER,
+        'id',
+        message.id
+      );
+
+      await process10DlcMessage(client, foundProcessMessageJob.payload);
+
+      const {
+        rows: [result],
+      } = await client.query<outbound_messages_routing>(
+        `select * from sms.outbound_messages_routing where id = $1`,
+        [message.id]
+      );
+
+      return result;
+    });
+
+    expect(m.send_after?.getTime()).toBe(sendAfter.getTime());
+  });
 });

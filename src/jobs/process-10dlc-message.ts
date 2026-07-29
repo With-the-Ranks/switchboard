@@ -62,7 +62,7 @@ export const process10DlcMessage: WrappableTask = async (
       stage: outbound_message_stages.Queued,
       from_number: prevMappingRecord.from_number,
       sending_location_id: prevMappingRecord.sending_location_id,
-      send_after: null,
+      send_after: payload.send_after as unknown as Date | null,
       first_from_to_pair_of_day: firstFromToPairOfDay,
     });
   } else {
@@ -94,7 +94,7 @@ export const process10DlcMessage: WrappableTask = async (
       stage: outbound_message_stages.Queued,
       from_number: fromNumber,
       sending_location_id: sendingLocationId,
-      send_after: null,
+      send_after: payload.send_after as unknown as Date | null,
       first_from_to_pair_of_day: true,
     });
   }
